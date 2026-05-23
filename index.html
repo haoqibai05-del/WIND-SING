@@ -136,6 +136,18 @@
     .feed-actions .btn:hover {
       color: #fff;
     }
+    /* 时间线空状态 */
+    .timeline-empty {
+      text-align: center;
+      color: #666;
+      padding: 3rem 1rem;
+      font-size: 0.95rem;
+    }
+    /* 登录按钮状态 */
+    #btn-login.logged-in {
+      color: #0d6efd;
+      border-color: #0d6efd;
+    }
 
     /* ---------- 追剧 - 视频播放器 ---------- */
     .video-player-wrapper {
@@ -404,6 +416,10 @@
             </a>
           </li>
         </ul>
+        <!-- 登录按钮 -->
+        <button id="btn-login" class="btn btn-outline-secondary btn-sm ms-3" title="登录">
+          <i class="bi bi-person"></i>
+        </button>
       </div>
     </div>
   </nav>
@@ -416,75 +432,17 @@
 
       <!-- ===== 发布器 ===== -->
       <div class="publisher-box">
-        <textarea class="form-control mb-3" rows="3" placeholder="分享此刻的想法..."></textarea>
+        <textarea id="publish-textarea" class="form-control mb-3" rows="3" placeholder="分享此刻的想法..."></textarea>
         <div class="d-flex justify-content-between align-items-center">
           <button class="btn btn-outline-secondary btn-sm" title="添加图片">
             <i class="bi bi-image me-1"></i>添加图片
           </button>
-          <button class="btn btn-primary btn-sm px-4">发布动态</button>
+          <button id="publish-btn" class="btn btn-primary btn-sm px-4">发布动态</button>
         </div>
       </div>
 
-      <!-- ===== 时间线 ===== -->
-
-      <!-- 动态卡片 1 - 带配图 -->
-      <article class="feed-card">
-        <!-- 头部：头像 + 昵称 + 时间 -->
-        <div class="d-flex align-items-center gap-3 mb-2">
-          <div class="feed-avatar">Y</div>
-          <div>
-            <div class="feed-nickname">夜梦春</div>
-            <div class="feed-time">2 小时前</div>
-          </div>
-        </div>
-        <!-- 正文 -->
-        <p class="feed-body">
-          周末重温了《星际穿越》，依然被震撼到说不出话。爱与引力，穿越维度。
-        </p>
-        <!-- 配图（Bootstrap 网格） -->
-        <div class="feed-images row g-2 mb-3">
-          <div class="col-4">
-            <img src="https://picsum.photos/seed/movie1/400/300" alt="配图1" class="img-fluid">
-          </div>
-          <div class="col-4">
-            <img src="https://picsum.photos/seed/movie2/400/300" alt="配图2" class="img-fluid">
-          </div>
-          <div class="col-4">
-            <img src="https://picsum.photos/seed/movie3/400/300" alt="配图3" class="img-fluid">
-          </div>
-        </div>
-        <!-- 底部操作栏 -->
-        <div class="feed-actions d-flex gap-3 border-top border-secondary pt-2">
-          <button class="btn btn-sm" title="点赞">
-            <i class="bi bi-heart me-1"></i>12
-          </button>
-          <button class="btn btn-sm" title="评论">
-            <i class="bi bi-chat me-1"></i>3
-          </button>
-        </div>
-      </article>
-
-      <!-- 动态卡片 2 - 纯文字 -->
-      <article class="feed-card">
-        <div class="d-flex align-items-center gap-3 mb-2">
-          <div class="feed-avatar" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">风</div>
-          <div>
-            <div class="feed-nickname">风歌</div>
-            <div class="feed-time">昨天 21:30</div>
-          </div>
-        </div>
-        <p class="feed-body">
-          新入了一本《雪国》。川端康成笔下的虚无与美，像是落在睫毛上的雪，凉凉的又舍不得眨眼睛。
-        </p>
-        <div class="feed-actions d-flex gap-3 border-top border-secondary pt-2">
-          <button class="btn btn-sm" title="点赞">
-            <i class="bi bi-heart me-1"></i>28
-          </button>
-          <button class="btn btn-sm" title="评论">
-            <i class="bi bi-chat me-1"></i>7
-          </button>
-        </div>
-      </article>
+      <!-- ===== 时间线（JS 动态渲染） ===== -->
+      <div id="timeline-list"></div>
 
     </section>
 
@@ -645,6 +603,33 @@
     </section>
 
   </main>
+
+  <!-- ========== 登录模态框 ========== -->
+  <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content bg-dark text-white border-secondary">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title" id="loginModalLabel"><i class="bi bi-person-check me-2"></i>管理员登录</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="关闭"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="login-username" class="form-label">账号</label>
+            <input type="text" class="form-control bg-dark text-white border-secondary" id="login-username" placeholder="请输入账号">
+          </div>
+          <div class="mb-3">
+            <label for="login-password" class="form-label">密码</label>
+            <input type="password" class="form-control bg-dark text-white border-secondary" id="login-password" placeholder="请输入密码">
+          </div>
+          <div id="login-error" class="text-danger small d-none">账号或密码错误</div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-login-submit">登录</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Bootstrap 5 JS（导航栏折叠等功能依赖） -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -995,6 +980,240 @@
           }
         });
       });
+    })();
+  </script>
+
+  <!-- ========== 动态 - 发布与渲染逻辑 ========== -->
+  <script>
+    (function () {
+      const API_BASE = 'http://localhost:8080';
+      const textarea = document.getElementById('publish-textarea');
+      const publishBtn = document.getElementById('publish-btn');
+      const timelineList = document.getElementById('timeline-list');
+
+      /** 格式化时间显示 */
+      function formatTime(dateStr) {
+        const now = new Date();
+        const date = new Date(dateStr);
+        const diffMs = now - date;
+        const diffMin = Math.floor(diffMs / 60000);
+        const diffHr  = Math.floor(diffMs / 3600000);
+        const diffDay = Math.floor(diffMs / 86400000);
+
+        if (diffMin < 1)  return '刚刚';
+        if (diffMin < 60) return diffMin + ' 分钟前';
+        if (diffHr  < 24) return diffHr  + ' 小时前';
+        if (diffDay < 7)  return diffDay + ' 天前';
+        return dateStr.substring(0, 10);
+      }
+
+      /** 构建单条动态卡片 HTML */
+      function buildCard(post) {
+        const nickname = post.userId ? '用户' + post.userId : '匿名';
+        const initial  = nickname.charAt(0).toUpperCase();
+        const timeStr  = formatTime(post.createdAt);
+        const content  = post.content || '';
+
+        // 配图
+        let imagesHtml = '';
+        if (post.images) {
+          try {
+            const urls = JSON.parse(post.images);
+            if (Array.isArray(urls) && urls.length > 0) {
+              const imgTags = urls.map(url =>
+                `<div class="col-4"><img src="${url}" alt="配图" class="img-fluid"></div>`
+              ).join('');
+              imagesHtml = `<div class="feed-images row g-2 mb-3">${imgTags}</div>`;
+            }
+          } catch (e) { /* images 字段非 JSON 时忽略 */ }
+        }
+
+        const likeCount = post.likeCount || 0;
+        const commentCount = post.commentCount || 0;
+
+        return `
+          <article class="feed-card">
+            <div class="d-flex align-items-center gap-3 mb-2">
+              <div class="feed-avatar">${initial}</div>
+              <div>
+                <div class="feed-nickname">${nickname}</div>
+                <div class="feed-time">${timeStr}</div>
+              </div>
+            </div>
+            <p class="feed-body">${content}</p>
+            ${imagesHtml}
+            <div class="feed-actions d-flex gap-3 border-top border-secondary pt-2">
+              <button class="btn btn-sm" title="点赞">
+                <i class="bi bi-heart me-1"></i>${likeCount}
+              </button>
+              <button class="btn btn-sm" title="评论">
+                <i class="bi bi-chat me-1"></i>${commentCount}
+              </button>
+            </div>
+          </article>`;
+      }
+
+      /** 从后端加载并渲染时间线 */
+      function loadTimeline() {
+        fetch(API_BASE + '/api/timeline/list')
+          .then(res => res.json())
+          .then(result => {
+            const list = result.data || [];
+            if (list.length === 0) {
+              timelineList.innerHTML = '<div class="timeline-empty"><i class="bi bi-inbox" style="font-size:2rem;"></i><p class="mt-2">暂无动态，快来发布第一条吧！</p></div>';
+              return;
+            }
+            timelineList.innerHTML = list.map(buildCard).join('');
+          })
+          .catch(err => {
+            console.error('加载动态失败:', err);
+            timelineList.innerHTML = '<div class="timeline-empty">加载失败，请确认后端服务已启动</div>';
+          });
+      }
+
+      /** 发布新动态 */
+      publishBtn.addEventListener('click', function () {
+        const text = textarea.value.trim();
+        if (!text) {
+          textarea.focus();
+          return;
+        }
+
+        const postData = {
+          userId: 1,   // 暂用固定用户ID
+          content: text
+          // images 字段暂不提交
+        };
+
+        // 合并鉴权请求头
+        const authHeaders = window.getAuthHeaders ? window.getAuthHeaders() : {};
+        const headers = { 'Content-Type': 'application/json', ...authHeaders };
+
+        fetch(API_BASE + '/api/timeline/add', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(postData)
+        })
+          .then(res => res.json())
+          .then(result => {
+            if (result.code === 401) {
+              // 未授权 → 弹出登录框
+              document.getElementById('btn-login').click();
+              return;
+            }
+            if (result.code === 200) {
+              textarea.value = '';
+              loadTimeline(); // 刷新列表
+            } else {
+              alert('发布失败: ' + result.message);
+            }
+          })
+          .catch(err => {
+            console.error('发布失败:', err);
+            alert('网络错误，请确认后端服务已启动');
+          });
+      });
+
+      // 页面加载时拉取动态列表
+      loadTimeline();
+    })();
+  </script>
+
+  <!-- ========== 登录鉴权逻辑 ========== -->
+  <script>
+    (function () {
+      const API_BASE = 'http://localhost:8080';
+      const TOKEN_KEY = 'windsing_token';
+
+      const btnLogin       = document.getElementById('btn-login');
+      const loginModal     = document.getElementById('loginModal');
+      const bsModal        = new bootstrap.Modal(loginModal);
+      const btnSubmit      = document.getElementById('btn-login-submit');
+      const inputUsername  = document.getElementById('login-username');
+      const inputPassword  = document.getElementById('login-password');
+      const loginError     = document.getElementById('login-error');
+
+      /** 获取存储的 Token */
+      window.getToken = function () {
+        return localStorage.getItem(TOKEN_KEY);
+      };
+
+      /** 获取带 Auth 头的配置对象 */
+      window.getAuthHeaders = function () {
+        const token = window.getToken();
+        if (!token) return {};
+        return { 'Authorization': 'Bearer ' + token };
+      };
+
+      /** 更新登录按钮状态 */
+      function updateLoginBtn() {
+        const token = window.getToken();
+        if (token) {
+          btnLogin.classList.add('logged-in');
+          btnLogin.title = '已登录，点击登出';
+        } else {
+          btnLogin.classList.remove('logged-in');
+          btnLogin.title = '登录';
+        }
+      }
+
+      /** 登录按钮点击 */
+      btnLogin.addEventListener('click', function () {
+        if (window.getToken()) {
+          // 已登录 → 登出
+          if (confirm('确定要退出登录吗？')) {
+            localStorage.removeItem(TOKEN_KEY);
+            updateLoginBtn();
+          }
+          return;
+        }
+        // 未登录 → 弹出登录框
+        inputUsername.value = '';
+        inputPassword.value = '';
+        loginError.classList.add('d-none');
+        bsModal.show();
+      });
+
+      /** 提交登录 */
+      btnSubmit.addEventListener('click', function () {
+        const username = inputUsername.value.trim();
+        const password = inputPassword.value;
+
+        if (!username || !password) {
+          loginError.textContent = '账号和密码不能为空';
+          loginError.classList.remove('d-none');
+          return;
+        }
+
+        fetch(API_BASE + '/api/user/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        })
+          .then(res => res.json())
+          .then(result => {
+            if (result.code === 200 && result.data && result.data.token) {
+              localStorage.setItem(TOKEN_KEY, result.data.token);
+              updateLoginBtn();
+              bsModal.hide();
+            } else {
+              loginError.textContent = result.message || '登录失败';
+              loginError.classList.remove('d-none');
+            }
+          })
+          .catch(() => {
+            loginError.textContent = '网络错误，请确认后端服务已启动';
+            loginError.classList.remove('d-none');
+          });
+      });
+
+      // 回车键提交登录
+      loginModal.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') btnSubmit.click();
+      });
+
+      // 初始状态
+      updateLoginBtn();
     })();
   </script>
 

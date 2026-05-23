@@ -22,6 +22,9 @@ CREATE TABLE `sys_user` (
   UNIQUE KEY `uk_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统用户表';
 
+-- 插入默认管理员（密码为 admin123，生产环境请使用 BCrypt 加密）
+INSERT INTO `sys_user` (`username`, `password`, `nickname`) VALUES ('admin', 'admin123', '风歌管理员');
+
 -- ----------------------------
 -- 2. 动态帖文表
 -- ----------------------------
