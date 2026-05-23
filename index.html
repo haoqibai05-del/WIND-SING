@@ -9,6 +9,8 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- DPlayer CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css" rel="stylesheet">
 
   <style>
     :root {
@@ -57,6 +59,308 @@
     .content-card p {
       color: #aaa;
       line-height: 1.8;
+    }
+
+    /* ---------- 发布器 ---------- */
+    .publisher-box {
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .publisher-box textarea {
+      background-color: #2a2a2a;
+      border: 1px solid #444;
+      color: #ddd;
+      resize: none;
+    }
+    .publisher-box textarea:focus {
+      background-color: #2a2a2a;
+      border-color: #0d6efd;
+      color: #fff;
+      box-shadow: none;
+    }
+    .publisher-box textarea::placeholder {
+      color: #777;
+    }
+
+    /* ---------- 动态卡片 ---------- */
+    .feed-card {
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .feed-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .feed-nickname {
+      font-weight: 600;
+      color: #e0e0e0;
+    }
+    .feed-time {
+      font-size: 0.8rem;
+      color: #777;
+    }
+    .feed-body {
+      color: #bbb;
+      line-height: 1.7;
+      margin-top: 0.75rem;
+    }
+    .feed-images img {
+      border-radius: 6px;
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .feed-images img:hover {
+      opacity: 0.85;
+    }
+    .feed-actions .btn {
+      color: #888;
+      font-size: 0.9rem;
+      padding: 0.25rem 0.5rem;
+    }
+    .feed-actions .btn:hover {
+      color: #fff;
+    }
+
+    /* ---------- 追剧 - 视频播放器 ---------- */
+    .video-player-wrapper {
+      background-color: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+    }
+    /* DPlayer 容器保持 16:9 */
+    #dplayer-container {
+      aspect-ratio: 16 / 9;
+    }
+    /* 选集面板 */
+    .episode-panel {
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      padding: 1rem;
+      height: fit-content;
+    }
+    .episode-panel .list-group-item {
+      background-color: #1e1e1e;
+      color: #bbb;
+      border-color: #333;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    .episode-panel .list-group-item:hover {
+      background-color: #2a2a2a;
+      color: #fff;
+    }
+    .episode-panel .list-group-item.active {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+      color: #fff;
+    }
+
+    /* ---------- 阅读 - 小说阅读器 ---------- */
+    /* 章节目录 */
+    .chapter-sidebar {
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      max-height: 75vh;
+      overflow-y: auto;
+    }
+    .chapter-sidebar .list-group-item {
+      background-color: transparent;
+      color: #aaa;
+      border-color: #2a2a2a;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    .chapter-sidebar .list-group-item:hover {
+      background-color: #2a2a2a;
+      color: #fff;
+    }
+    .chapter-sidebar .list-group-item.active {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+      color: #fff;
+    }
+    /* 正文阅读区 */
+    .reader-panel {
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      padding: 2rem 2.5rem;
+      min-height: 75vh;
+      position: relative;
+    }
+    .reader-content {
+      color: #d4d4d4;
+      font-size: 1rem; /* JS 会以此为基准调节 */
+      line-height: 2;
+      transition: font-size 0.2s;
+    }
+    .reader-content p {
+      text-indent: 2em;
+      margin-bottom: 1rem;
+    }
+    /* 悬浮工具栏 */
+    .reader-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: #2a2a2a;
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      position: sticky;
+      top: 76px; /* 导航栏高度 + 间距 */
+      z-index: 10;
+      margin-bottom: 1.5rem;
+    }
+    .reader-toolbar .btn {
+      color: #aaa;
+      font-size: 0.85rem;
+      padding: 0.25rem 0.6rem;
+    }
+    .reader-toolbar .btn:hover {
+      color: #fff;
+    }
+    .reader-toolbar .font-size-label {
+      color: #888;
+      font-size: 0.85rem;
+      min-width: 2.5rem;
+      text-align: center;
+    }
+    .reader-chapter-title {
+      color: #fff;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ---------- 听歌 - 私人电台 ---------- */
+    /* 左侧播放器面板 */
+    .player-panel {
+      background-color: #1e1e1e;
+      border-radius: 12px;
+      padding: 2rem 1.5rem 1.5rem;
+      text-align: center;
+    }
+    .player-cover {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 10px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+      margin-bottom: 1.5rem;
+    }
+    .player-song {
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .player-artist {
+      color: #888;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+    }
+    .player-progress {
+      height: 4px;
+      margin-bottom: 1.25rem;
+    }
+    .player-progress .progress-bar {
+      background-color: #0d6efd;
+      transition: width 0.3s;
+    }
+    .player-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.25rem;
+    }
+    .player-controls .btn-control {
+      color: #bbb;
+      font-size: 1.3rem;
+      padding: 0.3rem;
+      line-height: 1;
+      transition: color 0.2s, transform 0.15s;
+    }
+    .player-controls .btn-control:hover {
+      color: #fff;
+      transform: scale(1.1);
+    }
+    .player-controls .btn-play {
+      color: #fff;
+      font-size: 2rem;
+      background-color: #0d6efd;
+      border-radius: 50%;
+      width: 54px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s, transform 0.15s;
+    }
+    .player-controls .btn-play:hover {
+      background-color: #0b5ed7;
+      transform: scale(1.08);
+      color: #fff;
+    }
+
+    /* 右侧：歌词 + 歌单 */
+    .lyric-box {
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      padding: 1.25rem;
+      height: 260px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+    }
+    .lyric-line {
+      color: #666;
+      font-size: 0.9rem;
+      padding: 0.35rem 0.5rem;
+      border-radius: 4px;
+      transition: color 0.3s, background-color 0.3s;
+      line-height: 1.8;
+    }
+    .lyric-line.active {
+      color: #0d6efd;
+      background-color: rgba(13, 110, 253, 0.1);
+      font-weight: 600;
+    }
+    .playlist-panel .list-group-item {
+      background-color: #1e1e1e;
+      color: #aaa;
+      border-color: #2a2a2a;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .playlist-panel .list-group-item:hover {
+      background-color: #2a2a2a;
+      color: #fff;
+    }
+    .playlist-panel .list-group-item.active {
+      background-color: #252525;
+      border-left: 3px solid #0d6efd;
+      color: #fff;
+    }
+    .playlist-panel .list-group-item .song-index {
+      color: #666;
+      font-size: 0.8rem;
+      min-width: 1.2rem;
     }
   </style>
 </head>
@@ -108,33 +412,591 @@
   <main class="container">
 
     <!-- 动态 -->
-    <section id="tab-feeds" class="content-card">
-      <h2><i class="bi bi-rss me-2"></i>动态</h2>
-      <p>这里将展示最新的个人动态、生活记录和杂文随想。</p>
+    <section id="tab-feeds">
+
+      <!-- ===== 发布器 ===== -->
+      <div class="publisher-box">
+        <textarea class="form-control mb-3" rows="3" placeholder="分享此刻的想法..."></textarea>
+        <div class="d-flex justify-content-between align-items-center">
+          <button class="btn btn-outline-secondary btn-sm" title="添加图片">
+            <i class="bi bi-image me-1"></i>添加图片
+          </button>
+          <button class="btn btn-primary btn-sm px-4">发布动态</button>
+        </div>
+      </div>
+
+      <!-- ===== 时间线 ===== -->
+
+      <!-- 动态卡片 1 - 带配图 -->
+      <article class="feed-card">
+        <!-- 头部：头像 + 昵称 + 时间 -->
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="feed-avatar">Y</div>
+          <div>
+            <div class="feed-nickname">夜梦春</div>
+            <div class="feed-time">2 小时前</div>
+          </div>
+        </div>
+        <!-- 正文 -->
+        <p class="feed-body">
+          周末重温了《星际穿越》，依然被震撼到说不出话。爱与引力，穿越维度。
+        </p>
+        <!-- 配图（Bootstrap 网格） -->
+        <div class="feed-images row g-2 mb-3">
+          <div class="col-4">
+            <img src="https://picsum.photos/seed/movie1/400/300" alt="配图1" class="img-fluid">
+          </div>
+          <div class="col-4">
+            <img src="https://picsum.photos/seed/movie2/400/300" alt="配图2" class="img-fluid">
+          </div>
+          <div class="col-4">
+            <img src="https://picsum.photos/seed/movie3/400/300" alt="配图3" class="img-fluid">
+          </div>
+        </div>
+        <!-- 底部操作栏 -->
+        <div class="feed-actions d-flex gap-3 border-top border-secondary pt-2">
+          <button class="btn btn-sm" title="点赞">
+            <i class="bi bi-heart me-1"></i>12
+          </button>
+          <button class="btn btn-sm" title="评论">
+            <i class="bi bi-chat me-1"></i>3
+          </button>
+        </div>
+      </article>
+
+      <!-- 动态卡片 2 - 纯文字 -->
+      <article class="feed-card">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="feed-avatar" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">风</div>
+          <div>
+            <div class="feed-nickname">风歌</div>
+            <div class="feed-time">昨天 21:30</div>
+          </div>
+        </div>
+        <p class="feed-body">
+          新入了一本《雪国》。川端康成笔下的虚无与美，像是落在睫毛上的雪，凉凉的又舍不得眨眼睛。
+        </p>
+        <div class="feed-actions d-flex gap-3 border-top border-secondary pt-2">
+          <button class="btn btn-sm" title="点赞">
+            <i class="bi bi-heart me-1"></i>28
+          </button>
+          <button class="btn btn-sm" title="评论">
+            <i class="bi bi-chat me-1"></i>7
+          </button>
+        </div>
+      </article>
+
     </section>
 
     <!-- 追剧 -->
-    <section id="tab-drama" class="content-card d-none">
-      <h2><i class="bi bi-tv me-2"></i>追剧</h2>
-      <p>这里将展示正在追的剧集、观影记录和影评推荐。</p>
+    <section id="tab-drama" class="d-none">
+      <div class="row g-4">
+        <!-- 左侧：视频播放器 -->
+        <div class="col-lg-8">
+          <div class="video-player-wrapper">
+            <div id="dplayer-container"></div>
+          </div>
+        </div>
+        <!-- 右侧：选集面板 -->
+        <div class="col-lg-4">
+          <div class="episode-panel">
+            <h5 class="text-white mb-3"><i class="bi bi-collection-play me-2"></i>剧集选集</h5>
+            <div class="list-group" id="episode-list">
+              <a class="list-group-item list-group-item-action active" data-ep="0">
+                <i class="bi bi-play-circle me-2"></i>第 1 集 - 测试视频 A
+              </a>
+              <a class="list-group-item list-group-item-action" data-ep="1">
+                <i class="bi bi-play-circle me-2"></i>第 2 集 - 测试视频 B
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- 听歌 -->
-    <section id="tab-music" class="content-card d-none">
-      <h2><i class="bi bi-music-note-beamed me-2"></i>听歌</h2>
-      <p>这里将展示最近常听的音乐、歌单和音乐分享。</p>
+    <section id="tab-music" class="d-none">
+      <div class="row g-4">
+        <!-- 左侧：播放器面板 -->
+        <div class="col-lg-4">
+          <div class="player-panel">
+            <!-- 专辑封面 -->
+            <img id="player-cover" class="player-cover"
+                 src="https://picsum.photos/seed/music1/400/400"
+                 alt="专辑封面">
+            <!-- 歌曲信息 -->
+            <div class="player-song" id="player-song">晴天</div>
+            <div class="player-artist" id="player-artist">周杰伦</div>
+            <!-- 进度条 -->
+            <div class="progress player-progress" id="player-progress-bar">
+              <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+            </div>
+            <!-- 控制按钮 -->
+            <div class="player-controls">
+              <button class="btn btn-control" id="btn-prev" title="上一首">
+                <i class="bi bi-skip-start-fill"></i>
+              </button>
+              <button class="btn btn-control btn-play" id="btn-play" title="播放">
+                <i class="bi bi-play-fill"></i>
+              </button>
+              <button class="btn btn-control" id="btn-next" title="下一首">
+                <i class="bi bi-skip-end-fill"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧：歌词 + 歌单 -->
+        <div class="col-lg-8">
+          <!-- 歌词滚动区 -->
+          <div class="lyric-box" id="lyric-box">
+            <div class="lyric-line active">故事的小黄花 从出生那年就飘着</div>
+            <div class="lyric-line">童年的荡秋千 随记忆一直晃到现在</div>
+            <div class="lyric-line">吹着前奏望着天空 我想起花瓣试着掉落</div>
+            <div class="lyric-line">为你翘课的那一天 花落的那一天</div>
+            <div class="lyric-line">教室的那一间 我怎么看不见</div>
+            <div class="lyric-line">消失的下雨天 我好想再淋一遍</div>
+            <div class="lyric-line">没想到失去的勇气我还留着</div>
+            <div class="lyric-line">好想再问一遍 你会等待还是离开</div>
+          </div>
+          <!-- 歌单列表 -->
+          <div class="playlist-panel">
+            <h6 class="text-white mb-2 px-2"><i class="bi bi-music-note-list me-2"></i>私人歌单</h6>
+            <div class="list-group" id="playlist">
+              <a class="list-group-item list-group-item-action active" data-song="0">
+                <span class="song-index">01</span> 晴天 - 周杰伦
+              </a>
+              <a class="list-group-item list-group-item-action" data-song="1">
+                <span class="song-index">02</span> 夜曲 - 周杰伦
+              </a>
+              <a class="list-group-item list-group-item-action" data-song="2">
+                <span class="song-index">03</span> 起风了 - 买辣椒也用券
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- 阅读 -->
-    <section id="tab-reading" class="content-card d-none">
-      <h2><i class="bi bi-book me-2"></i>阅读</h2>
-      <p>这里将展示最近阅读的书籍、读书笔记和书评。</p>
+    <section id="tab-reading" class="d-none">
+      <div class="row g-4">
+        <!-- 左侧：章节目录 (3/12) -->
+        <div class="col-lg-3">
+          <div class="chapter-sidebar p-3">
+            <h5 class="text-white mb-3"><i class="bi bi-list-ul me-2"></i>章节目录</h5>
+            <div class="list-group" id="chapter-list">
+              <a class="list-group-item list-group-item-action active" data-ch="0">
+                第一章 风起青萍
+              </a>
+              <a class="list-group-item list-group-item-action" data-ch="1">
+                第二章 夜雨寄北
+              </a>
+              <a class="list-group-item list-group-item-action" data-ch="2">
+                第三章 星河欲转
+              </a>
+              <a class="list-group-item list-group-item-action" data-ch="3">
+                第四章 长歌当哭
+              </a>
+              <a class="list-group-item list-group-item-action" data-ch="4">
+                第五章 山月不知
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧：正文阅读区 (9/12) -->
+        <div class="col-lg-9">
+          <div class="reader-panel">
+
+            <!-- 悬浮工具栏 -->
+            <div class="reader-toolbar">
+              <button class="btn btn-sm" id="font-minus" title="缩小字体">
+                <i class="bi bi-dash-circle"></i> A-
+              </button>
+              <span class="font-size-label" id="font-size-label">16px</span>
+              <button class="btn btn-sm" id="font-plus" title="放大字体">
+                <i class="bi bi-plus-circle"></i> A+
+              </button>
+              <span class="flex-grow-1"></span>
+              <button class="btn btn-sm" id="prev-chapter" title="上一章">
+                <i class="bi bi-chevron-left"></i> 上一章
+              </button>
+              <button class="btn btn-sm" id="next-chapter" title="下一章">
+                下一章 <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+
+            <!-- 正文内容 -->
+            <h3 class="reader-chapter-title" id="chapter-title">第一章 风起青萍</h3>
+            <div class="reader-content" id="reader-content">
+              <p>秋风萧瑟天气凉，草木摇落露为霜。群山万壑之间，一骑绝尘而来，马蹄踏碎了满地的枯叶，惊起几只寒鸦，呱呱叫着飞入灰蒙蒙的天际。</p>
+              <p>马上之人不过二十出头，一袭青衫已被风尘染得看不出本来颜色，唯有腰间那柄长剑在日光下偶尔泛起一丝冷冽的寒芒。他勒住缰绳，抬头望向远处那座终年云雾缭绕的山峰，眼底掠过一抹复杂的情绪。</p>
+              <p>江湖人都说，那座山上住着一个不该活在人世间的人。而今天，他便是来寻那个人的。</p>
+              <p>山间石径蜿蜒曲折，两侧松柏森森，偶尔有猿啼鹤唳从深谷传来，更添几分苍凉。行了约莫半个时辰，眼前豁然开朗，一座茅草亭孤零零地立在崖边，亭中有人背对而坐，白发如雪，衣袂随风轻扬。</p>
+              <p>青年翻身下马，整了整衣冠，这才缓步上前。他没有开口，只是静静地站在亭外，直到那人缓缓转过身来——竟是一张年轻得不可思议的面孔，与那一头白发形成了诡异的对照。</p>
+              <p>「你来了。」那人语气平淡，像是等了很久，又像是一切都在意料之中。</p>
+              <p>「我来了。」青年深吸一口气，「十年前你救我一命，十年后我来还你一剑。」</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </section>
 
   </main>
 
   <!-- Bootstrap 5 JS（导航栏折叠等功能依赖） -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- hls.js（m3u8 流媒体解析） -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <!-- DPlayer -->
+  <script src="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js"></script>
+
+  <!-- ========== 追剧 - 视频播放器逻辑 ========== -->
+  <script>
+    (function () {
+      // 测试用 m3u8 视频源
+      const videoSources = [
+        {
+          name: '测试视频 A',
+          url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
+        },
+        {
+          name: '测试视频 B',
+          url: 'https://test-streams.mux.dev/pts_t/multiple_original_renditions/master.m3u8'
+        }
+      ];
+
+      const container = document.getElementById('dplayer-container');
+      const episodeItems = document.querySelectorAll('#episode-list [data-ep]');
+      let dp = null; // DPlayer 实例
+
+      /**
+       * 根据视频源索引初始化 / 切换播放器
+       * @param {number} index - videoSources 数组下标
+       */
+      function loadVideo(index) {
+        const src = videoSources[index];
+
+        if (dp) {
+          // 销毁旧实例再重建，确保切换干净
+          dp.destroy();
+        }
+
+        dp = new DPlayer({
+          container: container,
+          autoplay: false,
+          theme: '#0d6efd',
+          loop: false,
+          lang: 'zh-cn',
+          screenshot: false,
+          hotkey: true,
+          preload: 'auto',
+          video: {
+            url: src.url,
+            type: 'auto' // DPlayer + hls.js 会自动识别 m3u8
+          }
+        });
+      }
+
+      // 绑定选集点击事件
+      episodeItems.forEach(item => {
+        item.addEventListener('click', function (e) {
+          e.preventDefault();
+          const epIndex = parseInt(this.dataset.ep, 10);
+
+          // 切换高亮
+          episodeItems.forEach(el => el.classList.remove('active'));
+          this.classList.add('active');
+
+          // 切换视频源
+          loadVideo(epIndex);
+        });
+      });
+
+      // 切换到追剧 tab 时延迟初始化播放器（等容器可见）
+      const dramaTabLink = document.querySelector('[data-tab="drama"]');
+      const originalSwitchTab = window._switchTabDrama || null;
+
+      // 监听：当追剧 tab 首次展示时才初始化 DPlayer
+      let playerInited = false;
+      function ensurePlayerInited() {
+        if (!playerInited && !document.getElementById('tab-drama').classList.contains('d-none')) {
+          playerInited = true;
+          loadVideo(0);
+        }
+      }
+
+      // 劫持导航点击，在切换到追剧时初始化播放器
+      document.querySelectorAll('.nav-link[data-tab]').forEach(link => {
+        link.addEventListener('click', function () {
+          if (this.dataset.tab === 'drama') {
+            // 稍等 DOM 显示后再初始化
+            setTimeout(ensurePlayerInited, 50);
+          }
+        });
+      });
+
+      // 如果是默认显示追剧（不太可能，但兜底）
+      setTimeout(ensurePlayerInited, 100);
+    })();
+  </script>
+
+  <!-- ========== 阅读 - 字体调节 & 章节切换 ========== -->
+  <script>
+    (function () {
+      const readerContent = document.getElementById('reader-content');
+      const fontSizeLabel = document.getElementById('font-size-label');
+      const chapterTitle = document.getElementById('chapter-title');
+      const chapterItems = document.querySelectorAll('#chapter-list [data-ch]');
+      const btnPrev = document.getElementById('prev-chapter');
+      const btnNext = document.getElementById('next-chapter');
+
+      // 每章对应的标题和正文（模拟数据）
+      const chapters = [
+        { title: '第一章 风起青萍', text: document.getElementById('reader-content').innerHTML },
+        { title: '第二章 夜雨寄北', text: '<p>君问归期未有期，巴山夜雨涨秋池。雨打芭蕉的夜里，他独坐窗前，望着烛火出神。此行南下已有三月，归期一再延宕，不知家中那盏灯是否还为他点着。</p><p>窗外的雨越下越大，打在瓦檐上噼啪作响。他铺开信纸，提笔又放下，千言万语竟不知从何说起。索性不写了，披上蓑衣推门而出，任雨水淋了满脸。</p><p>暗巷深处有人在拉二胡，琴声幽幽咽咽裹在雨里，像极了那年离别时她低低的啜泣。</p>' },
+        { title: '第三章 星河欲转', text: '<p>星河欲转千帆舞。仿佛梦魂归帝所，闻天语，殷勤问我归何处。夜已深，万籁俱寂，唯有头顶那条璀璨的银河缓缓旋转，像是某种古老的仪式。</p><p>他躺在草地上，双手枕在脑后，望着满天星斗出神。小时候祖母说，每一颗星星都是一个死去的人，你若是想谁了，就抬头看天。他不知道哪一颗是她，于是他把整片天空都看进了眼底。</p><p>露水打湿了衣袖，凉意透过衣衫渗入骨髓。他忽然笑了——活着的人终究要学会告别。</p>' },
+        { title: '第四章 长歌当哭', text: '<p>长歌可以当哭，远望可以当归。大漠孤烟直，长河落日圆。他牵着一匹老马走在无边无垠的黄沙之中，身后的脚印被风一吹便了无痕迹。</p><p>这一生走过太多路，见过太多人。有些成了故人，有些成了过客，还有些，成了刻在骨头里拔不出来的刺。他摸了摸胸口那枚磨得发亮的铜钱，那是她临别时塞进他手心的——"等你回来，用这个请我喝酒。"</p><p>可他终究没能回去。有些路一旦踏上，便再没有回头一说。</p>' },
+        { title: '第五章 山月不知', text: '<p>山月不知心里事，水风空落眼前花。寺庙的钟声在山谷间回荡，一下一下，像是要把尘世的种种都敲碎了、化尽了。</p><p>老僧说：施主心中有事。他笑了笑，端起粗瓷茶杯抿了一口，没有作答。茶很苦，苦得恰到好处。他望着窗外那轮清冷的山月，忽然觉得这半生的执念不过是一场大梦——梦醒了，月亮还是那个月亮，只是看月亮的人老了。</p><p>他放下茶钱，合十作别。走出山门那一刻，春风拂面，桃花落了满肩。</p>' }
+      ];
+
+      // 初始化：将第一章的正文存入 chapters[0]
+      chapters[0].text = readerContent.innerHTML;
+
+      let currentFontSize = 16; // 基准 px
+      let currentChapter = 0;
+
+      /** 更新字体大小 */
+      function updateFontSize() {
+        readerContent.style.fontSize = currentFontSize + 'px';
+        fontSizeLabel.textContent = currentFontSize + 'px';
+      }
+
+      /** 切换到指定章节 */
+      function switchChapter(index) {
+        currentChapter = index;
+        const ch = chapters[index];
+        chapterTitle.textContent = ch.title;
+        readerContent.innerHTML = ch.text;
+
+        // 更新目录高亮
+        chapterItems.forEach(item => {
+          const isTarget = parseInt(item.dataset.ch, 10) === index;
+          item.classList.toggle('active', isTarget);
+        });
+      }
+
+      // 字体缩小
+      document.getElementById('font-minus').addEventListener('click', function () {
+        if (currentFontSize > 12) {
+          currentFontSize -= 2;
+          updateFontSize();
+        }
+      });
+
+      // 字体放大
+      document.getElementById('font-plus').addEventListener('click', function () {
+        if (currentFontSize < 28) {
+          currentFontSize += 2;
+          updateFontSize();
+        }
+      });
+
+      // 上一章
+      btnPrev.addEventListener('click', function () {
+        if (currentChapter > 0) {
+          switchChapter(currentChapter - 1);
+        }
+      });
+
+      // 下一章
+      btnNext.addEventListener('click', function () {
+        if (currentChapter < chapters.length - 1) {
+          switchChapter(currentChapter + 1);
+        }
+      });
+
+      // 目录点击切换章节
+      chapterItems.forEach(item => {
+        item.addEventListener('click', function (e) {
+          e.preventDefault();
+          const idx = parseInt(this.dataset.ch, 10);
+          if (idx !== currentChapter) {
+            switchChapter(idx);
+          }
+        });
+      });
+    })();
+  </script>
+
+  <!-- ========== 听歌 - 音乐播放器逻辑 ========== -->
+  <script>
+    (function () {
+      // 模拟歌曲数据
+      const playlist = [
+        {
+          title: '晴天',
+          artist: '周杰伦',
+          cover: 'https://picsum.photos/seed/music1/400/400',
+          lyrics: [
+            '故事的小黄花 从出生那年就飘着',
+            '童年的荡秋千 随记忆一直晃到现在',
+            '吹着前奏望着天空 我想起花瓣试着掉落',
+            '为你翘课的那一天 花落的那一天',
+            '教室的那一间 我怎么看不见',
+            '消失的下雨天 我好想再淋一遍',
+            '没想到失去的勇气我还留着',
+            '好想再问一遍 你会等待还是离开'
+          ]
+        },
+        {
+          title: '夜曲',
+          artist: '周杰伦',
+          cover: 'https://picsum.photos/seed/music2/400/400',
+          lyrics: [
+            '一群嗜血的蚂蚁 被腐肉所吸引',
+            '我面无表情 看孤独的风景',
+            '失去你 爱恨开始分明',
+            '失去你 还有什么事好关心',
+            '当鸽子不再象征和平 我终于被提醒',
+            '我用漂亮的押韵 形容被掠夺一空的爱情'
+          ]
+        },
+        {
+          title: '起风了',
+          artist: '买辣椒也用券',
+          cover: 'https://picsum.photos/seed/music3/400/400',
+          lyrics: [
+            '这一路上走走停停 顺着少年漂流的痕迹',
+            '迈出车站的前一刻 竟有些犹豫',
+            '不禁笑这近乡情怯 仍无可避免',
+            '而长野的天 依旧那么暖 风吹起了从前',
+            '从前初识这世间 万般流连 看着天边似在眼前',
+            '也甘愿赴汤蹈火去走它一遍'
+          ]
+        }
+      ];
+
+      const elCover    = document.getElementById('player-cover');
+      const elSong     = document.getElementById('player-song');
+      const elArtist   = document.getElementById('player-artist');
+      const elLyricBox = document.getElementById('lyric-box');
+      const btnPlay    = document.getElementById('btn-play');
+      const btnPrev    = document.getElementById('btn-prev');
+      const btnNext    = document.getElementById('btn-next');
+      const progressBar = document.querySelector('#player-progress-bar .progress-bar');
+      const playlistItems = document.querySelectorAll('#playlist [data-song]');
+
+      let currentSong  = 0;
+      let isPlaying    = false;
+      let progressTimer = null;
+      let progressVal   = 0;
+
+      /** 渲染当前歌曲信息 */
+      function renderSong(index) {
+        const song = playlist[index];
+        elCover.src = song.cover;
+        elSong.textContent = song.title;
+        elArtist.textContent = song.artist;
+
+        // 渲染歌词
+        elLyricBox.innerHTML = song.lyrics
+          .map((line, i) => `<div class="lyric-line${i === 0 ? ' active' : ''}">${line}</div>`)
+          .join('');
+
+        // 更新歌单高亮
+        playlistItems.forEach(item => {
+          const isTarget = parseInt(item.dataset.song, 10) === index;
+          item.classList.toggle('active', isTarget);
+        });
+      }
+
+      /** 切换播放/暂停图标 */
+      function setPlaying(state) {
+        isPlaying = state;
+        const icon = btnPlay.querySelector('i');
+        if (state) {
+          icon.className = 'bi bi-pause-fill';
+          startProgress();
+        } else {
+          icon.className = 'bi bi-play-fill';
+          stopProgress();
+        }
+      }
+
+      /** 模拟进度条前进 */
+      function startProgress() {
+        stopProgress();
+        progressTimer = setInterval(function () {
+          if (progressVal >= 100) {
+            // 播完自动切下一首
+            stopProgress();
+            progressVal = 0;
+            updateProgressBar();
+            switchSong((currentSong + 1) % playlist.length);
+          } else {
+            progressVal += 0.5;
+            updateProgressBar();
+          }
+        }, 200);
+      }
+
+      function stopProgress() {
+        if (progressTimer) {
+          clearInterval(progressTimer);
+          progressTimer = null;
+        }
+      }
+
+      function updateProgressBar() {
+        progressBar.style.width = progressVal + '%';
+      }
+
+      /** 切换歌曲 */
+      function switchSong(index) {
+        // 重置进度
+        stopProgress();
+        progressVal = 0;
+        updateProgressBar();
+
+        currentSong = index;
+        renderSong(index);
+
+        // 切换后自动开始播放
+        if (!isPlaying) setPlaying(true);
+      }
+
+      // 播放/暂停
+      btnPlay.addEventListener('click', function () {
+        setPlaying(!isPlaying);
+      });
+
+      // 上一首
+      btnPrev.addEventListener('click', function () {
+        const prev = (currentSong - 1 + playlist.length) % playlist.length;
+        switchSong(prev);
+      });
+
+      // 下一首
+      btnNext.addEventListener('click', function () {
+        const next = (currentSong + 1) % playlist.length;
+        switchSong(next);
+      });
+
+      // 歌单点击
+      playlistItems.forEach(item => {
+        item.addEventListener('click', function (e) {
+          e.preventDefault();
+          const idx = parseInt(this.dataset.song, 10);
+          if (idx !== currentSong) {
+            switchSong(idx);
+          }
+        });
+      });
+    })();
+  </script>
 
   <!-- ========== SPA Tab 切换逻辑 ========== -->
   <script>
