@@ -1,0 +1,36 @@
+# ============================================================
+# 风歌 WIND-SING 后端服务配置
+# ============================================================
+server:
+  port: 8080
+
+spring:
+  application:
+    name: windsing-backend
+
+  # MySQL 数据源
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/windsing?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai&useSSL=false
+    username: root
+    password: your_password_here
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  # 实体扫描包
+  type-aliases-package: com.windsing.entity
+  # Mapper XML 文件位置
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    # 驼峰转下划线（默认开启）
+    map-underscore-to-camel-case: true
+    # SQL 日志
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      # 主键自增策略
+      id-type: auto
+      # 逻辑删除
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
