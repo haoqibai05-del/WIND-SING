@@ -455,17 +455,12 @@
             <div id="dplayer-container"></div>
           </div>
         </div>
-        <!-- 右侧：选集面板 -->
+        <!-- 右侧：追剧列表 -->
         <div class="col-lg-4">
           <div class="episode-panel">
-            <h5 class="text-white mb-3"><i class="bi bi-collection-play me-2"></i>剧集选集</h5>
+            <h5 class="text-white mb-3"><i class="bi bi-collection-play me-2"></i>追剧列表</h5>
             <div class="list-group" id="episode-list">
-              <a class="list-group-item list-group-item-action active" data-ep="0">
-                <i class="bi bi-play-circle me-2"></i>第 1 集 - 测试视频 A
-              </a>
-              <a class="list-group-item list-group-item-action" data-ep="1">
-                <i class="bi bi-play-circle me-2"></i>第 2 集 - 测试视频 B
-              </a>
+              <!-- JS 动态渲染 -->
             </div>
           </div>
         </div>
@@ -638,36 +633,132 @@
   <!-- DPlayer -->
   <script src="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js"></script>
 
-  <!-- ========== 追剧 - 视频播放器逻辑 ========== -->
+  <!-- ========== 追剧 - 视频播放器 + 进度云同步 ========== -->
   <script>
     (function () {
-      // 测试用 m3u8 视频源
+      const API_BASE = 'http://localhost:8080';
+      const container = document.getElementById('dplayer-container');
+      const episodeListEl = document.getElementById('episode-list');
+
+      // 测试用 m3u8 视频源（3个开源测试流）
       const videoSources = [
         {
-          name: '测试视频 A',
-          url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
+          title: 'Big Buck Bunny',
+          url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+          epIndex: 1,
+          epTitle: '第 1 集 - Big Buck Bunny'
         },
         {
-          name: '测试视频 B',
-          url: 'https://test-streams.mux.dev/pts_t/multiple_original_renditions/master.m3u8'
+          title: 'Tears of Steel',
+          url: 'https://test-streams.mux.dev/pts_t/multiple_original_renditions/master.m3u8',
+          epIndex: 2,
+          epTitle: '第 2 集 - Tears of Steel'
+        },
+        {
+          title: 'Sintel Trailer',
+          url: 'https://test-streams.mux.dev/sintel/sintel.m3u8',
+          epIndex: 3,
+          epTitle: '第 3 集 - Sintel'
         }
       ];
 
-      const container = document.getElementById('dplayer-container');
-      const episodeItems = document.querySelectorAll('#episode-list [data-ep]');
-      let dp = null; // DPlayer 实例
+      let dp = null;
+      let currentSourceIndex = 0;
+      let currentBookmark = null;   // 当前视频的后端追剧记录
+      let lastSaveTime = 0;        // 上次保存进度的时间戳（节流用）
+      let playerInited = false;
 
-      /**
-       * 根据视频源索引初始化 / 切换播放器
-       * @param {number} index - videoSources 数组下标
-       */
-      function loadVideo(index) {
+      // ---- 选集列表渲染 ----
+      function renderEpisodeList(bookmarks) {
+        const bmMap = {};
+        if (bookmarks && bookmarks.length > 0) {
+          bookmarks.forEach(b => { bmMap[b.videoUrl] = b; });
+        }
+
+        episodeListEl.innerHTML = videoSources.map((src, i) => {
+          const bm = bmMap[src.url];
+          let badge = '';
+          if (bm && bm.progressSeconds > 0) {
+            const min = Math.floor(bm.progressSeconds / 60);
+            const sec = Math.floor(bm.progressSeconds % 60);
+            badge = `<span class="badge bg-secondary ms-1" style="font-size:0.7rem;">已看 ${min}:${String(sec).padStart(2,'0')}</span>`;
+          }
+          const activeClass = i === currentSourceIndex ? ' active' : '';
+          return `<a class="list-group-item list-group-item-action${activeClass}" data-ep="${i}">
+            <i class="bi bi-play-circle me-2"></i>${src.epTitle}${badge}
+          </a>`;
+        }).join('');
+
+        // 重新绑定点击事件
+        episodeListEl.querySelectorAll('[data-ep]').forEach(item => {
+          item.addEventListener('click', function (e) {
+            e.preventDefault();
+            const idx = parseInt(this.dataset.ep, 10);
+            if (idx !== currentSourceIndex) {
+              switchToVideo(idx);
+            }
+          });
+        });
+      }
+
+      // ---- 保存进度到后端 ----
+      function saveProgress() {
+        if (!currentBookmark && dp.video.currentTime < 1) return; // 无记录且时长太短，跳过
+
+        const src = videoSources[currentSourceIndex];
+        const body = {
+          videoTitle: src.title,
+          videoUrl: src.url,
+          episodeIndex: src.epIndex,
+          episodeTitle: src.epTitle,
+          progressSeconds: dp.video.currentTime
+        };
+
+        const authHeaders = window.getAuthHeaders ? window.getAuthHeaders() : {};
+        const headers = { 'Content-Type': 'application/json', ...authHeaders };
+
+        fetch(API_BASE + '/api/video/save_progress', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(body)
+        })
+          .then(res => res.json())
+          .then(result => {
+            if (result.code === 200) {
+              currentBookmark = result.data;
+              // 重新渲染列表以更新进度 badge
+              fetchBookmarksAndRender();
+            }
+          })
+          .catch(err => console.error('保存进度失败:', err));
+      }
+
+      // ---- 从后端拉取追剧列表 ----
+      function fetchBookmarksAndRender() {
+        const authHeaders = window.getAuthHeaders ? window.getAuthHeaders() : {};
+        fetch(API_BASE + '/api/video/bookmarks', {
+          headers: authHeaders
+        })
+          .then(res => res.json())
+          .then(result => {
+            const bookmarks = (result.code === 200) ? (result.data || []) : [];
+            // 找到当前视频对应的 bookmark
+            const src = videoSources[currentSourceIndex];
+            currentBookmark = bookmarks.find(b => b.videoUrl === src.url) || null;
+            renderEpisodeList(bookmarks);
+          })
+          .catch(err => console.error('获取追剧列表失败:', err));
+      }
+
+      // ---- 切换到指定视频 ----
+      function switchToVideo(index) {
+        // 切换前保存当前进度
+        if (dp && playerInited) saveProgress();
+
+        currentSourceIndex = index;
         const src = videoSources[index];
 
-        if (dp) {
-          // 销毁旧实例再重建，确保切换干净
-          dp.destroy();
-        }
+        if (dp) dp.destroy();
 
         dp = new DPlayer({
           container: container,
@@ -680,50 +771,75 @@
           preload: 'auto',
           video: {
             url: src.url,
-            type: 'auto' // DPlayer + hls.js 会自动识别 m3u8
+            type: 'auto'
+          }
+        });
+
+        // 拉取该视频的历史进度，播放器就绪后跳转
+        fetch(API_BASE + '/api/video/bookmarks', {
+          headers: window.getAuthHeaders ? window.getAuthHeaders() : {}
+        })
+          .then(res => res.json())
+          .then(result => {
+            const bookmarks = (result.code === 200) ? (result.data || []) : [];
+            const bm = bookmarks.find(b => b.videoUrl === src.url);
+            currentBookmark = bm || null;
+            renderEpisodeList(bookmarks);
+
+            // DPlayer 准备好后 seek 到上次位置
+            if (bm && bm.progressSeconds > 1) {
+              const seekTo = bm.progressSeconds;
+              const trySeek = () => {
+                if (dp.video.duration > 0) {
+                  dp.seek(seekTo);
+                } else {
+                  setTimeout(trySeek, 500);
+                }
+              };
+              trySeek();
+            }
+          })
+          .catch(err => console.error('获取进度失败:', err));
+
+        // 绑定进度保存事件
+        bindProgressEvents();
+      }
+
+      // ---- 绑定播放器进度事件 ----
+      function bindProgressEvents() {
+        // 暂停时保存
+        dp.on('pause', function () {
+          if (dp.video.currentTime > 0) saveProgress();
+        });
+
+        // 播放中每 10 秒保存一次（节流）
+        dp.on('timeupdate', function () {
+          const now = Date.now();
+          if (now - lastSaveTime > 10000 && dp.video.currentTime > 0) {
+            lastSaveTime = now;
+            saveProgress();
           }
         });
       }
 
-      // 绑定选集点击事件
-      episodeItems.forEach(item => {
-        item.addEventListener('click', function (e) {
-          e.preventDefault();
-          const epIndex = parseInt(this.dataset.ep, 10);
-
-          // 切换高亮
-          episodeItems.forEach(el => el.classList.remove('active'));
-          this.classList.add('active');
-
-          // 切换视频源
-          loadVideo(epIndex);
-        });
-      });
-
-      // 切换到追剧 tab 时延迟初始化播放器（等容器可见）
-      const dramaTabLink = document.querySelector('[data-tab="drama"]');
-      const originalSwitchTab = window._switchTabDrama || null;
-
-      // 监听：当追剧 tab 首次展示时才初始化 DPlayer
-      let playerInited = false;
+      // ---- 首次初始化 ----
       function ensurePlayerInited() {
         if (!playerInited && !document.getElementById('tab-drama').classList.contains('d-none')) {
           playerInited = true;
-          loadVideo(0);
+          switchToVideo(0);
         }
       }
 
-      // 劫持导航点击，在切换到追剧时初始化播放器
+      // 切换到追剧 tab 时初始化
       document.querySelectorAll('.nav-link[data-tab]').forEach(link => {
         link.addEventListener('click', function () {
           if (this.dataset.tab === 'drama') {
-            // 稍等 DOM 显示后再初始化
             setTimeout(ensurePlayerInited, 50);
           }
         });
       });
 
-      // 如果是默认显示追剧（不太可能，但兜底）
+      // 兜底
       setTimeout(ensurePlayerInited, 100);
     })();
   </script>

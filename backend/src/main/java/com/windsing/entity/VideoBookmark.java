@@ -25,6 +25,9 @@ public class VideoBookmark {
 
     private String episodeTitle;
 
+    /** 已播放进度（秒） */
+    private Double progressSeconds;
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
