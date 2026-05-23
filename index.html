@@ -257,6 +257,14 @@
       color: #fff;
       margin-bottom: 1.5rem;
     }
+    .reader-content code {
+      background-color: #2a2a2a;
+      color: #e8b96d;
+      padding: 0.15em 0.4em;
+      border-radius: 3px;
+      font-size: 0.9em;
+      font-family: 'Courier New', Consolas, monospace;
+    }
 
     /* ---------- 听歌 - 私人电台 ---------- */
     /* 左侧播放器面板 */
@@ -541,26 +549,17 @@
     <!-- 阅读 -->
     <section id="tab-reading" class="d-none">
       <div class="row g-4">
-        <!-- 左侧：章节目录 (3/12) -->
+        <!-- 左侧：书架 + 章节目录 (3/12) -->
         <div class="col-lg-3">
           <div class="chapter-sidebar p-3">
-            <h5 class="text-white mb-3"><i class="bi bi-list-ul me-2"></i>章节目录</h5>
-            <div class="list-group" id="chapter-list">
-              <a class="list-group-item list-group-item-action active" data-ch="0">
-                第一章 风起青萍
-              </a>
-              <a class="list-group-item list-group-item-action" data-ch="1">
-                第二章 夜雨寄北
-              </a>
-              <a class="list-group-item list-group-item-action" data-ch="2">
-                第三章 星河欲转
-              </a>
-              <a class="list-group-item list-group-item-action" data-ch="3">
-                第四章 长歌当哭
-              </a>
-              <a class="list-group-item list-group-item-action" data-ch="4">
-                第五章 山月不知
-              </a>
+            <h5 class="text-white mb-3"><i class="bi bi-bookmark me-2"></i>书架</h5>
+            <!-- 书籍选择 -->
+            <div class="list-group mb-3" id="book-list" style="font-size:0.85rem;">
+              <!-- JS 动态渲染 -->
+            </div>
+            <!-- 章节目录 -->
+            <div class="list-group" id="chapter-list" style="max-height:45vh;overflow-y:auto;">
+              <!-- JS 动态渲染 -->
             </div>
           </div>
         </div>
@@ -588,15 +587,9 @@
             </div>
 
             <!-- 正文内容 -->
-            <h3 class="reader-chapter-title" id="chapter-title">第一章 风起青萍</h3>
+            <h3 class="reader-chapter-title" id="chapter-title">第一章 西关大屋的趟栊门</h3>
             <div class="reader-content" id="reader-content">
-              <p>秋风萧瑟天气凉，草木摇落露为霜。群山万壑之间，一骑绝尘而来，马蹄踏碎了满地的枯叶，惊起几只寒鸦，呱呱叫着飞入灰蒙蒙的天际。</p>
-              <p>马上之人不过二十出头，一袭青衫已被风尘染得看不出本来颜色，唯有腰间那柄长剑在日光下偶尔泛起一丝冷冽的寒芒。他勒住缰绳，抬头望向远处那座终年云雾缭绕的山峰，眼底掠过一抹复杂的情绪。</p>
-              <p>江湖人都说，那座山上住着一个不该活在人世间的人。而今天，他便是来寻那个人的。</p>
-              <p>山间石径蜿蜒曲折，两侧松柏森森，偶尔有猿啼鹤唳从深谷传来，更添几分苍凉。行了约莫半个时辰，眼前豁然开朗，一座茅草亭孤零零地立在崖边，亭中有人背对而坐，白发如雪，衣袂随风轻扬。</p>
-              <p>青年翻身下马，整了整衣冠，这才缓步上前。他没有开口，只是静静地站在亭外，直到那人缓缓转过身来——竟是一张年轻得不可思议的面孔，与那一头白发形成了诡异的对照。</p>
-              <p>「你来了。」那人语气平淡，像是等了很久，又像是一切都在意料之中。</p>
-              <p>「我来了。」青年深吸一口气，「十年前你救我一命，十年后我来还你一剑。」</p>
+              <p>选择一本书开始阅读</p>
             </div>
 
           </div>
@@ -851,91 +844,265 @@
     })();
   </script>
 
-  <!-- ========== 阅读 - 字体调节 & 章节切换 ========== -->
+  <!-- ========== 阅读 - 字号持久化 + 云端书签 ========== -->
   <script>
     (function () {
-      const readerContent = document.getElementById('reader-content');
-      const fontSizeLabel = document.getElementById('font-size-label');
-      const chapterTitle = document.getElementById('chapter-title');
-      const chapterItems = document.querySelectorAll('#chapter-list [data-ch]');
-      const btnPrev = document.getElementById('prev-chapter');
-      const btnNext = document.getElementById('next-chapter');
+      const API_BASE = 'http://localhost:8080';
+      const FONT_KEY = 'windsing_font_size';
 
-      // 每章对应的标题和正文（模拟数据）
-      const chapters = [
-        { title: '第一章 风起青萍', text: document.getElementById('reader-content').innerHTML },
-        { title: '第二章 夜雨寄北', text: '<p>君问归期未有期，巴山夜雨涨秋池。雨打芭蕉的夜里，他独坐窗前，望着烛火出神。此行南下已有三月，归期一再延宕，不知家中那盏灯是否还为他点着。</p><p>窗外的雨越下越大，打在瓦檐上噼啪作响。他铺开信纸，提笔又放下，千言万语竟不知从何说起。索性不写了，披上蓑衣推门而出，任雨水淋了满脸。</p><p>暗巷深处有人在拉二胡，琴声幽幽咽咽裹在雨里，像极了那年离别时她低低的啜泣。</p>' },
-        { title: '第三章 星河欲转', text: '<p>星河欲转千帆舞。仿佛梦魂归帝所，闻天语，殷勤问我归何处。夜已深，万籁俱寂，唯有头顶那条璀璨的银河缓缓旋转，像是某种古老的仪式。</p><p>他躺在草地上，双手枕在脑后，望着满天星斗出神。小时候祖母说，每一颗星星都是一个死去的人，你若是想谁了，就抬头看天。他不知道哪一颗是她，于是他把整片天空都看进了眼底。</p><p>露水打湿了衣袖，凉意透过衣衫渗入骨髓。他忽然笑了——活着的人终究要学会告别。</p>' },
-        { title: '第四章 长歌当哭', text: '<p>长歌可以当哭，远望可以当归。大漠孤烟直，长河落日圆。他牵着一匹老马走在无边无垠的黄沙之中，身后的脚印被风一吹便了无痕迹。</p><p>这一生走过太多路，见过太多人。有些成了故人，有些成了过客，还有些，成了刻在骨头里拔不出来的刺。他摸了摸胸口那枚磨得发亮的铜钱，那是她临别时塞进他手心的——"等你回来，用这个请我喝酒。"</p><p>可他终究没能回去。有些路一旦踏上，便再没有回头一说。</p>' },
-        { title: '第五章 山月不知', text: '<p>山月不知心里事，水风空落眼前花。寺庙的钟声在山谷间回荡，一下一下，像是要把尘世的种种都敲碎了、化尽了。</p><p>老僧说：施主心中有事。他笑了笑，端起粗瓷茶杯抿了一口，没有作答。茶很苦，苦得恰到好处。他望着窗外那轮清冷的山月，忽然觉得这半生的执念不过是一场大梦——梦醒了，月亮还是那个月亮，只是看月亮的人老了。</p><p>他放下茶钱，合十作别。走出山门那一刻，春风拂面，桃花落了满肩。</p>' }
+      const readerContent  = document.getElementById('reader-content');
+      const fontSizeLabel  = document.getElementById('font-size-label');
+      const chapterTitle   = document.getElementById('chapter-title');
+      const chapterListEl  = document.getElementById('chapter-list');
+      const bookListEl     = document.getElementById('book-list');
+      const btnPrev        = document.getElementById('prev-chapter');
+      const btnNext        = document.getElementById('next-chapter');
+
+      // ---- 两本测试读物数据 ----
+      const books = [
+        {
+          key: '广州风物志：西关大屋与虾饺',
+          chapters: [
+            {
+              title: '第一章 西关大屋的趟栊门',
+              text: '<p>广州西关，乃岭南建筑之精粹。走进恩宁路、宝华路一带，可见一幢幢青砖石脚、趟栊门、满洲窗的西关大屋。所谓"趟栊门"，是广府民居最独特的门制——由十余根直径约五厘米的圆木横排而成，既可通风透气，又防盗贼潜入。夏日午后，穿过趟栊门缝隙的微风掠过天井，带着白兰花的幽香，是老广州人记忆中挥之不去的味道。</p><p>大屋平面一般为"三间两廊"布局，正中为厅，两侧为房。厅前天井不单采光通风，更承载着"四水归堂"的风水理念——雨水自四面瓦檐汇入天井，象征财气聚拢。厅内供着祖先牌位，两侧酸枝木椅一字排开，墙面挂着岭南画派的山水条幅，整座建筑处处透出务实又讲究的广府性格。</p>'
+            },
+            {
+              title: '第二章 从泮塘马蹄粉到水晶虾饺',
+              text: '<p>如果说西关大屋展现了广府人的居住美学，那么遍布街巷的茶楼食肆，则盛放着广府人最热烈的世俗烟火。广州人"叹茶"一说，实在妙极——一个"叹"字，将那种慢悠悠品味、享受人生的态度勾勒得淋漓尽致。</p><p>虾饺，是检验一家茶楼水准的试金石。上乘虾饺，皮薄如蝉翼、白如凝脂，隐约可见其中粉红色的虾仁馅料。饺皮用料极为讲究，须以澄面和生粉按比例混合，沸水烫熟后趁热搓揉，方可做到晶莹透亮。馅料取新鲜河虾，去壳挑肠，与少许肥猪肉粒、笋丝拌匀——那一口咬下去，弹牙的虾肉爆出鲜甜汁水，便是岭南清晨最动人的问候。</p>'
+            },
+            {
+              title: '第三章 榕树头下的艇仔粥',
+              text: '<p>荔枝湾涌旁，百年老榕气根垂地如帘。树下小艇泊岸，船家女人用柴火小炉滚着一锅白粥，这便是广州最草根的街头美食——艇仔粥。鱼片、鱿鱼、浮皮、叉烧、蛋丝、花生、油条碎……一碗粥里仿佛装进了整条珠江的物产。滚粥入碗，食材在高温中迅速断生，撒一把葱花芫荽，滴几滴酱油香油，腾腾热气里是岭南水乡最质朴的人间至味。</p><p>如今荔枝湾涌经城市改造已不复旧时模样，但那些记忆中的味道，依然在老城区的小巷深处倔强地活着。有时深夜路过龙津西路，还能闻到从某扇虚掩的趟栊门后飘出的煲粥香气——那是广州人对生活最温柔的坚持。</p>'
+            }
+          ]
+        },
+        {
+          key: '8086汇编实战与DOSBox调试',
+          chapters: [
+            {
+              title: '第一章 寄存器与MOV指令',
+              text: '<p>8086 CPU 拥有四个通用寄存器：<code>AX</code>（累加器）、<code>BX</code>（基址寄存器）、<code>CX</code>（计数器）、<code>DX</code>（数据寄存器）。每个寄存器为 16 位，又可拆分为高低两个 8 位寄存器，例如 <code>AX</code> 的高 8 位为 <code>AH</code>、低 8 位为 <code>AL</code>。</p><p>最基础的传送指令是 <code>MOV</code>，格式为 <code>MOV 目的, 源</code>。它将源操作数的值复制到目的操作数中，源操作数不变。例如：<code>MOV AX, 1234H</code> 将十六进制数 1234H 加载到 AX 寄存器；<code>MOV BX, AX</code> 再将 AX 的值复制到 BX。需要注意，<code>MOV</code> 不能直接将立即数送入段寄存器（如 <code>MOV DS, 1000H</code> 是非法的），必须经过通用寄存器中转。</p>'
+            },
+            {
+              title: '第二章 DOSBox 环境搭建与 DEBUG 初探',
+              text: '<p>在现代操作系统上运行 8086 汇编，需要借助 DOSBox 模拟器。安装 DOSBox 后，将 MASM 或 NASM 汇编工具放入一个工作目录，在 DOSBox 配置文件的 <code>[autoexec]</code> 段中添加 <code>mount C: /path/to/workdir</code> 和 <code>PATH=%PATH%;C:\MASM</code> 即可。</p><p>DOS 自带的 <code>DEBUG.EXE</code> 是最简便的入门工具。启动后输入 <code>R</code> 可查看当前所有寄存器状态；<code>D DS:0</code> 显示数据段前 128 字节的内存内容；<code>A 100</code> 从偏移量 100H 处开始输入汇编指令。逐行输入完毕后空行退出汇编模式，再用 <code>G=100</code> 运行程序，<code>T</code> 单步跟踪。初学者通过这些基本命令便能直观感受寄存器与内存的变化。</p>'
+            },
+            {
+              title: '第三章 中断调用与字符输出',
+              text: '<p>在 DOS 环境下，BIOS 和 DOS 提供了丰富的中断服务例程。最常用的 <code>INT 21H</code> 是 DOS 功能调用，其中 <code>AH=02H</code> 可向屏幕输出一个字符（字符存于 <code>DL</code>），<code>AH=09H</code> 输出以 <code>$</code> 结尾的字符串（地址存于 <code>DS:DX</code>）。</p><p>一个完整的 "Hello, World" 程序如下：<br><code>MOV AH, 09H</code><br><code>MOV DX, OFFSET MSG</code><br><code>INT 21H</code><br><code>MOV AH, 4CH</code><br><code>INT 21H</code><br>其中 <code>MSG DB \'Hello, World!$\'</code> 定义字符串数据。4CH 功能调用则用于正常退出程序返回 DOS。调试时可在每步后设断点，观察 <code>DX</code> 指向的内存地址是否确实存放了目标字符串——这是排查段地址错误的常用方法。</p>'
+            }
+          ]
+        }
       ];
 
-      // 初始化：将第一章的正文存入 chapters[0]
-      chapters[0].text = readerContent.innerHTML;
-
+      let currentBook    = 0;   // books 数组下标
+      let currentChapter = 0;   // 当前书中的章节下标
       let currentFontSize = 16; // 基准 px
-      let currentChapter = 0;
 
-      /** 更新字体大小 */
+      // ---- 字号 LocalStorage 持久化 ----
+      function loadFontSize() {
+        const saved = localStorage.getItem(FONT_KEY);
+        if (saved) {
+          const val = parseInt(saved, 10);
+          if (val >= 12 && val <= 28) currentFontSize = val;
+        }
+      }
+
+      function saveFontSize() {
+        localStorage.setItem(FONT_KEY, String(currentFontSize));
+      }
+
       function updateFontSize() {
         readerContent.style.fontSize = currentFontSize + 'px';
         fontSizeLabel.textContent = currentFontSize + 'px';
       }
 
-      /** 切换到指定章节 */
-      function switchChapter(index) {
-        currentChapter = index;
-        const ch = chapters[index];
-        chapterTitle.textContent = ch.title;
-        readerContent.innerHTML = ch.text;
+      // ---- 云端书架加载 ----
+      let bookshelfMap = {}; // novelTitle → chapterIndex
 
-        // 更新目录高亮
-        chapterItems.forEach(item => {
-          const isTarget = parseInt(item.dataset.ch, 10) === index;
-          item.classList.toggle('active', isTarget);
+      function loadBookshelf() {
+        const authHeaders = window.getAuthHeaders ? window.getAuthHeaders() : {};
+        fetch(API_BASE + '/api/novel/bookshelf', { headers: authHeaders })
+          .then(res => res.json())
+          .then(result => {
+            if (result.code === 200 && result.data) {
+              result.data.forEach(item => {
+                bookshelfMap[item.novelTitle] = item.chapterIndex;
+              });
+            }
+            // 加载书架后初始化阅读
+            initReading();
+          })
+          .catch(() => { initReading(); });
+      }
+
+      function initReading() {
+        renderBookList();
+        // 尝试定位到云端保存的章节
+        const book = books[currentBook];
+        const cloudChapter = bookshelfMap[book.key];
+        if (cloudChapter !== undefined && cloudChapter >= 0 && cloudChapter < book.chapters.length) {
+          currentChapter = cloudChapter;
+        } else {
+          currentChapter = 0;
+        }
+        renderChapterList();
+        showChapter();
+        // 应用缓存的字号
+        updateFontSize();
+      }
+
+      // ---- 渲染书架书籍列表 ----
+      function renderBookList() {
+        bookListEl.innerHTML = books.map((book, i) => {
+          const activeClass = i === currentBook ? ' active' : '';
+          const cloudCh = bookshelfMap[book.key];
+          const badge = (cloudCh !== undefined)
+            ? '<span class="badge bg-secondary ms-1" style="font-size:0.65rem;">看到第' + (cloudCh + 1) + '章</span>'
+            : '';
+          return `<a class="list-group-item list-group-item-action${activeClass}" data-book="${i}">
+            <i class="bi bi-book me-1"></i>${book.key}${badge}
+          </a>`;
+        }).join('');
+
+        bookListEl.querySelectorAll('[data-book]').forEach(item => {
+          item.addEventListener('click', function (e) {
+            e.preventDefault();
+            const idx = parseInt(this.dataset.book, 10);
+            if (idx !== currentBook) switchBook(idx);
+          });
         });
       }
 
-      // 字体缩小
+      // ---- 渲染章节目录 ----
+      function renderChapterList() {
+        const book = books[currentBook];
+        chapterListEl.innerHTML = book.chapters.map((ch, i) => {
+          const activeClass = i === currentChapter ? ' active' : '';
+          return `<a class="list-group-item list-group-item-action${activeClass}" data-ch="${i}">${ch.title}</a>`;
+        }).join('');
+
+        chapterListEl.querySelectorAll('[data-ch]').forEach(item => {
+          item.addEventListener('click', function (e) {
+            e.preventDefault();
+            const idx = parseInt(this.dataset.ch, 10);
+            if (idx !== currentChapter) {
+              switchChapter(idx);
+            }
+          });
+        });
+      }
+
+      // ---- 显示当前章节正文 ----
+      function showChapter() {
+        const book = books[currentBook];
+        const ch = book.chapters[currentChapter];
+        chapterTitle.textContent = ch.title;
+        readerContent.innerHTML = ch.text;
+      }
+
+      // ---- 云端保存进度 ----
+      function saveProgress() {
+        const book = books[currentBook];
+        const authHeaders = window.getAuthHeaders ? window.getAuthHeaders() : {};
+        const headers = { 'Content-Type': 'application/json', ...authHeaders };
+
+        fetch(API_BASE + '/api/novel/save_progress', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            novelTitle: book.key,
+            chapterTitle: book.chapters[currentChapter].title,
+            chapterIndex: currentChapter
+          })
+        })
+          .then(res => res.json())
+          .then(result => {
+            if (result.code === 200) {
+              bookshelfMap[book.key] = currentChapter;
+              renderBookList(); // 刷新书架 badge
+            }
+          })
+          .catch(() => {});
+      }
+
+      // ---- 切换章节 ----
+      function switchChapter(index) {
+        currentChapter = index;
+        showChapter();
+        renderChapterList();
+        saveProgress(); // 每次切章自动云同步
+      }
+
+      // ---- 切换书籍 ----
+      function switchBook(index) {
+        saveProgress(); // 切书前先保存当前进度
+        currentBook = index;
+        const cloudCh = bookshelfMap[books[index].key];
+        currentChapter = (cloudCh !== undefined) ? cloudCh : 0;
+        renderBookList();
+        renderChapterList();
+        showChapter();
+      }
+
+      // ---- 工具栏事件 ----
       document.getElementById('font-minus').addEventListener('click', function () {
         if (currentFontSize > 12) {
           currentFontSize -= 2;
           updateFontSize();
+          saveFontSize();
         }
       });
 
-      // 字体放大
       document.getElementById('font-plus').addEventListener('click', function () {
         if (currentFontSize < 28) {
           currentFontSize += 2;
           updateFontSize();
+          saveFontSize();
         }
       });
 
-      // 上一章
       btnPrev.addEventListener('click', function () {
+        const book = books[currentBook];
         if (currentChapter > 0) {
           switchChapter(currentChapter - 1);
+        } else if (currentBook > 0) {
+          // 已是第一章，切到上一本书的最后一章
+          switchBook(currentBook - 1);
+          switchChapter(books[currentBook].chapters.length - 1);
         }
       });
 
-      // 下一章
       btnNext.addEventListener('click', function () {
-        if (currentChapter < chapters.length - 1) {
+        const book = books[currentBook];
+        if (currentChapter < book.chapters.length - 1) {
           switchChapter(currentChapter + 1);
+        } else if (currentBook < books.length - 1) {
+          // 已是最后一章，切到下一本书的第一章
+          switchBook(currentBook + 1);
         }
       });
 
-      // 目录点击切换章节
-      chapterItems.forEach(item => {
-        item.addEventListener('click', function (e) {
-          e.preventDefault();
-          const idx = parseInt(this.dataset.ch, 10);
-          if (idx !== currentChapter) {
-            switchChapter(idx);
+      // ---- 初始化 ----
+      loadFontSize();
+      updateFontSize();
+
+      // 切换到阅读 tab 时加载书架
+      let novelLoaded = false;
+      document.querySelectorAll('.nav-link[data-tab]').forEach(link => {
+        link.addEventListener('click', function () {
+          if (this.dataset.tab === 'reading' && !novelLoaded) {
+            novelLoaded = true;
+            setTimeout(loadBookshelf, 100);
           }
         });
       });
+
+      // 兜底
+      setTimeout(function () {
+        if (!novelLoaded) { novelLoaded = true; loadBookshelf(); }
+      }, 500);
     })();
   </script>
 

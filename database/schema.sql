@@ -101,3 +101,8 @@ CREATE TABLE `novel_progress` (
   PRIMARY KEY (`id`),
   KEY `idx_user_novel` (`user_id`, `novel_title`(50))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='阅读进度表';
+
+-- 为 admin 预置两本测试读物的初始阅读进度
+INSERT INTO `novel_progress` (`user_id`, `novel_title`, `chapter_title`, `chapter_index`, `last_read_at`) VALUES
+(1, '广州风物志：西关大屋与虾饺', '第一章 西关大屋的趟栊门', 1, NOW()),
+(1, '8086汇编实战与DOSBox调试',  '第一章 寄存器与MOV指令', 1, NOW());
