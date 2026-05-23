@@ -374,6 +374,18 @@
       font-size: 0.8rem;
       min-width: 1.2rem;
     }
+    .playlist-panel .list-group-item .delete-song {
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .playlist-panel .list-group-item:hover .delete-song {
+      opacity: 1;
+    }
+    /* 添加歌曲输入框 */
+    #add-song-title, #add-song-artist {
+      font-size: 0.8rem;
+    }
   </style>
 </head>
 <body>
@@ -503,28 +515,23 @@
         <div class="col-lg-8">
           <!-- 歌词滚动区 -->
           <div class="lyric-box" id="lyric-box">
-            <div class="lyric-line active">故事的小黄花 从出生那年就飘着</div>
-            <div class="lyric-line">童年的荡秋千 随记忆一直晃到现在</div>
-            <div class="lyric-line">吹着前奏望着天空 我想起花瓣试着掉落</div>
-            <div class="lyric-line">为你翘课的那一天 花落的那一天</div>
-            <div class="lyric-line">教室的那一间 我怎么看不见</div>
-            <div class="lyric-line">消失的下雨天 我好想再淋一遍</div>
-            <div class="lyric-line">没想到失去的勇气我还留着</div>
-            <div class="lyric-line">好想再问一遍 你会等待还是离开</div>
+            <div class="text-center text-muted py-5">
+              <i class="bi bi-music-note" style="font-size:2rem;"></i>
+              <p class="mt-2 small">选择一首歌曲开始播放</p>
+            </div>
           </div>
           <!-- 歌单列表 -->
           <div class="playlist-panel">
             <h6 class="text-white mb-2 px-2"><i class="bi bi-music-note-list me-2"></i>私人歌单</h6>
-            <div class="list-group" id="playlist">
-              <a class="list-group-item list-group-item-action active" data-song="0">
-                <span class="song-index">01</span> 晴天 - 周杰伦
-              </a>
-              <a class="list-group-item list-group-item-action" data-song="1">
-                <span class="song-index">02</span> 夜曲 - 周杰伦
-              </a>
-              <a class="list-group-item list-group-item-action" data-song="2">
-                <span class="song-index">03</span> 起风了 - 买辣椒也用券
-              </a>
+            <!-- 添加歌曲 -->
+            <div class="input-group input-group-sm mb-2 px-2">
+              <input type="text" class="form-control bg-dark text-white border-secondary" id="add-song-title" placeholder="歌曲名">
+              <input type="text" class="form-control bg-dark text-white border-secondary" id="add-song-artist" placeholder="歌手">
+              <button class="btn btn-outline-primary" id="btn-add-song" title="添加"><i class="bi bi-plus-lg"></i></button>
+            </div>
+            <!-- 歌单列表（JS 动态渲染） -->
+            <div class="list-group" id="playlist" style="max-height:300px;overflow-y:auto;">
+              <div class="text-center text-muted py-3 small">请先登录以加载歌单</div>
             </div>
           </div>
         </div>
@@ -932,170 +939,246 @@
     })();
   </script>
 
-  <!-- ========== 听歌 - 音乐播放器逻辑 ========== -->
+  <!-- ========== 听歌 - 原生 Audio + 歌单管理 ========== -->
   <script>
     (function () {
-      // 模拟歌曲数据
-      const playlist = [
-        {
-          title: '晴天',
-          artist: '周杰伦',
-          cover: 'https://picsum.photos/seed/music1/400/400',
-          lyrics: [
-            '故事的小黄花 从出生那年就飘着',
-            '童年的荡秋千 随记忆一直晃到现在',
-            '吹着前奏望着天空 我想起花瓣试着掉落',
-            '为你翘课的那一天 花落的那一天',
-            '教室的那一间 我怎么看不见',
-            '消失的下雨天 我好想再淋一遍',
-            '没想到失去的勇气我还留着',
-            '好想再问一遍 你会等待还是离开'
-          ]
-        },
-        {
-          title: '夜曲',
-          artist: '周杰伦',
-          cover: 'https://picsum.photos/seed/music2/400/400',
-          lyrics: [
-            '一群嗜血的蚂蚁 被腐肉所吸引',
-            '我面无表情 看孤独的风景',
-            '失去你 爱恨开始分明',
-            '失去你 还有什么事好关心',
-            '当鸽子不再象征和平 我终于被提醒',
-            '我用漂亮的押韵 形容被掠夺一空的爱情'
-          ]
-        },
-        {
-          title: '起风了',
-          artist: '买辣椒也用券',
-          cover: 'https://picsum.photos/seed/music3/400/400',
-          lyrics: [
-            '这一路上走走停停 顺着少年漂流的痕迹',
-            '迈出车站的前一刻 竟有些犹豫',
-            '不禁笑这近乡情怯 仍无可避免',
-            '而长野的天 依旧那么暖 风吹起了从前',
-            '从前初识这世间 万般流连 看着天边似在眼前',
-            '也甘愿赴汤蹈火去走它一遍'
-          ]
+      const API_BASE = 'http://localhost:8080';
+      const audio = new Audio(); // HTML5 Audio 单例
+      let playlist = [];          // 后端歌单数据
+      let currentIndex = -1;     // 当前播放的歌曲在 playlist 中的索引
+
+      const elCover      = document.getElementById('player-cover');
+      const elSong       = document.getElementById('player-song');
+      const elArtist     = document.getElementById('player-artist');
+      const elLyricBox   = document.getElementById('lyric-box');
+      const btnPlay      = document.getElementById('btn-play');
+      const btnPrev      = document.getElementById('btn-prev');
+      const btnNext      = document.getElementById('btn-next');
+      const progressBar  = document.querySelector('#player-progress-bar .progress-bar');
+      const playlistEl   = document.getElementById('playlist');
+      const btnAddSong   = document.getElementById('btn-add-song');
+      const inputTitle   = document.getElementById('add-song-title');
+      const inputArtist  = document.getElementById('add-song-artist');
+
+      // ---- 从后端加载歌单 ----
+      function loadPlaylist() {
+        const authHeaders = window.getAuthHeaders ? window.getAuthHeaders() : {};
+        fetch(API_BASE + '/api/music/list', { headers: authHeaders })
+          .then(res => res.json())
+          .then(result => {
+            if (result.code === 200) {
+              playlist = result.data || [];
+              renderPlaylist();
+            } else {
+              playlistEl.innerHTML = '<div class="text-center text-muted py-3 small">请先登录以加载歌单</div>';
+            }
+          })
+          .catch(() => {
+            playlistEl.innerHTML = '<div class="text-center text-muted py-3 small">连接失败，请确认后端服务已启动</div>';
+          });
+      }
+
+      // ---- 渲染歌单列表 ----
+      function renderPlaylist() {
+        if (playlist.length === 0) {
+          playlistEl.innerHTML = '<div class="text-center text-muted py-3 small">歌单空空，添加一首歌曲吧</div>';
+          return;
         }
-      ];
+        playlistEl.innerHTML = playlist.map((song, i) => {
+          const activeClass = i === currentIndex ? ' active' : '';
+          return `
+            <a class="list-group-item list-group-item-action${activeClass}" data-idx="${i}">
+              <span class="song-index">${String(i + 1).padStart(2, '0')}</span>
+              <span class="flex-grow-1">${escapeHtml(song.songTitle)} - ${escapeHtml(song.artist || '未知')}</span>
+              <i class="bi bi-trash text-danger ms-2 delete-song" data-id="${song.id}" title="删除"></i>
+            </a>`;
+        }).join('');
 
-      const elCover    = document.getElementById('player-cover');
-      const elSong     = document.getElementById('player-song');
-      const elArtist   = document.getElementById('player-artist');
-      const elLyricBox = document.getElementById('lyric-box');
-      const btnPlay    = document.getElementById('btn-play');
-      const btnPrev    = document.getElementById('btn-prev');
-      const btnNext    = document.getElementById('btn-next');
-      const progressBar = document.querySelector('#player-progress-bar .progress-bar');
-      const playlistItems = document.querySelectorAll('#playlist [data-song]');
+        // 绑定歌单点击（播放）
+        playlistEl.querySelectorAll('[data-idx]').forEach(item => {
+          item.addEventListener('click', function (e) {
+            if (e.target.closest('.delete-song')) return; // 点击删除图标时不播放
+            const idx = parseInt(this.dataset.idx, 10);
+            if (idx !== currentIndex) playSong(idx);
+          });
+        });
 
-      let currentSong  = 0;
-      let isPlaying    = false;
-      let progressTimer = null;
-      let progressVal   = 0;
+        // 绑定删除图标点击
+        playlistEl.querySelectorAll('.delete-song').forEach(icon => {
+          icon.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const songId = this.dataset.id;
+            deleteSong(songId);
+          });
+        });
+      }
 
-      /** 渲染当前歌曲信息 */
-      function renderSong(index) {
+      function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      // ---- 删除歌曲 ----
+      function deleteSong(songId) {
+        if (!confirm('确定要删除这首歌曲吗？')) return;
+
+        const authHeaders = window.getAuthHeaders ? window.getAuthHeaders() : {};
+        fetch(API_BASE + '/api/music/remove/' + songId, {
+          method: 'DELETE',
+          headers: authHeaders
+        })
+          .then(res => res.json())
+          .then(result => {
+            if (result.code === 200) {
+              // 如果删除的是当前播放的歌曲，先停止
+              const deletedIdx = playlist.findIndex(s => s.id == songId);
+              if (deletedIdx === currentIndex) {
+                audio.pause();
+                updatePlayIcon(false);
+              }
+              // 从数组中移除
+              playlist = playlist.filter(s => s.id != songId);
+              if (deletedIdx < currentIndex) currentIndex--;
+              if (currentIndex >= playlist.length) currentIndex = playlist.length - 1;
+              renderPlaylist();
+            } else {
+              alert('删除失败: ' + result.message);
+            }
+          })
+          .catch(() => alert('网络错误'));
+      }
+
+      // ---- 新增歌曲 ----
+      btnAddSong.addEventListener('click', function () {
+        const title  = inputTitle.value.trim();
+        const artist = inputArtist.value.trim();
+        if (!title) { inputTitle.focus(); return; }
+
+        const authHeaders = window.getAuthHeaders ? window.getAuthHeaders() : {};
+        const headers = { 'Content-Type': 'application/json', ...authHeaders };
+
+        const songData = {
+          songTitle: title,
+          artist: artist || '未知',
+          coverUrl: 'https://picsum.photos/seed/' + Date.now() + '/400/400',
+          sourceUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-' + (1 + playlist.length % 16) + '.mp3',
+          sortOrder: playlist.length + 1
+        };
+
+        fetch(API_BASE + '/api/music/add', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(songData)
+        })
+          .then(res => res.json())
+          .then(result => {
+            if (result.code === 200) {
+              inputTitle.value = '';
+              inputArtist.value = '';
+              loadPlaylist(); // 重新加载
+            } else if (result.code === 401) {
+              document.getElementById('btn-login').click();
+            } else {
+              alert('添加失败: ' + result.message);
+            }
+          })
+          .catch(() => alert('网络错误'));
+      });
+
+      // ---- 播放指定歌曲 ----
+      function playSong(index) {
+        currentIndex = index;
         const song = playlist[index];
-        elCover.src = song.cover;
-        elSong.textContent = song.title;
-        elArtist.textContent = song.artist;
 
-        // 渲染歌词
-        elLyricBox.innerHTML = song.lyrics
-          .map((line, i) => `<div class="lyric-line${i === 0 ? ' active' : ''}">${line}</div>`)
-          .join('');
+        elCover.src = song.coverUrl || 'https://picsum.photos/seed/default/400/400';
+        elSong.textContent = song.songTitle;
+        elArtist.textContent = song.artist || '未知';
+        elLyricBox.innerHTML = '<div class="text-center text-muted py-3 small">正在播放: ' + escapeHtml(song.songTitle) + '</div>';
 
-        // 更新歌单高亮
-        playlistItems.forEach(item => {
-          const isTarget = parseInt(item.dataset.song, 10) === index;
-          item.classList.toggle('active', isTarget);
-        });
+        if (song.sourceUrl) {
+          audio.src = song.sourceUrl;
+          audio.load();
+          audio.play().then(() => updatePlayIcon(true)).catch(() => updatePlayIcon(false));
+        }
+
+        renderPlaylist();
       }
 
-      /** 切换播放/暂停图标 */
-      function setPlaying(state) {
-        isPlaying = state;
+      // ---- 播放/暂停图标 ----
+      function updatePlayIcon(playing) {
         const icon = btnPlay.querySelector('i');
-        if (state) {
-          icon.className = 'bi bi-pause-fill';
-          startProgress();
-        } else {
-          icon.className = 'bi bi-play-fill';
-          stopProgress();
+        icon.className = playing ? 'bi bi-pause-fill' : 'bi bi-play-fill';
+      }
+
+      // ---- 进度条由 audio 事件驱动 ----
+      audio.addEventListener('timeupdate', function () {
+        if (audio.duration && !isNaN(audio.duration)) {
+          const pct = (audio.currentTime / audio.duration) * 100;
+          progressBar.style.width = pct + '%';
         }
-      }
+      });
 
-      /** 模拟进度条前进 */
-      function startProgress() {
-        stopProgress();
-        progressTimer = setInterval(function () {
-          if (progressVal >= 100) {
-            // 播完自动切下一首
-            stopProgress();
-            progressVal = 0;
-            updateProgressBar();
-            switchSong((currentSong + 1) % playlist.length);
-          } else {
-            progressVal += 0.5;
-            updateProgressBar();
-          }
-        }, 200);
-      }
-
-      function stopProgress() {
-        if (progressTimer) {
-          clearInterval(progressTimer);
-          progressTimer = null;
+      audio.addEventListener('ended', function () {
+        progressBar.style.width = '0%';
+        updatePlayIcon(false);
+        // 自动下一首
+        if (currentIndex < playlist.length - 1) {
+          playSong(currentIndex + 1);
         }
-      }
+      });
 
-      function updateProgressBar() {
-        progressBar.style.width = progressVal + '%';
-      }
+      audio.addEventListener('play',  function () { updatePlayIcon(true);  });
+      audio.addEventListener('pause', function () { updatePlayIcon(false); });
 
-      /** 切换歌曲 */
-      function switchSong(index) {
-        // 重置进度
-        stopProgress();
-        progressVal = 0;
-        updateProgressBar();
-
-        currentSong = index;
-        renderSong(index);
-
-        // 切换后自动开始播放
-        if (!isPlaying) setPlaying(true);
-      }
-
-      // 播放/暂停
+      // ---- 控制按钮 ----
       btnPlay.addEventListener('click', function () {
-        setPlaying(!isPlaying);
+        if (!audio.src && playlist.length > 0) {
+          playSong(0);
+          return;
+        }
+        if (audio.paused) {
+          audio.play().catch(() => {});
+        } else {
+          audio.pause();
+        }
       });
 
-      // 上一首
       btnPrev.addEventListener('click', function () {
-        const prev = (currentSong - 1 + playlist.length) % playlist.length;
-        switchSong(prev);
+        if (playlist.length === 0) return;
+        const prev = (currentIndex - 1 + playlist.length) % playlist.length;
+        playSong(prev);
       });
 
-      // 下一首
       btnNext.addEventListener('click', function () {
-        const next = (currentSong + 1) % playlist.length;
-        switchSong(next);
+        if (playlist.length === 0) return;
+        const next = (currentIndex + 1) % playlist.length;
+        playSong(next);
       });
 
-      // 歌单点击
-      playlistItems.forEach(item => {
-        item.addEventListener('click', function (e) {
-          e.preventDefault();
-          const idx = parseInt(this.dataset.song, 10);
-          if (idx !== currentSong) {
-            switchSong(idx);
+      // ---- 进度条点击跳转 ----
+      document.getElementById('player-progress-bar').addEventListener('click', function (e) {
+        if (!audio.duration || isNaN(audio.duration)) return;
+        const rect = this.getBoundingClientRect();
+        const pct = (e.clientX - rect.left) / rect.width;
+        audio.currentTime = pct * audio.duration;
+      });
+
+      // ---- 切换到听歌 tab 时自动加载歌单 ----
+      let musicLoaded = false;
+      document.querySelectorAll('.nav-link[data-tab]').forEach(link => {
+        link.addEventListener('click', function () {
+          if (this.dataset.tab === 'music' && !musicLoaded) {
+            musicLoaded = true;
+            setTimeout(loadPlaylist, 100);
           }
         });
       });
+
+      // 兜底
+      setTimeout(function () {
+        if (!musicLoaded) { musicLoaded = true; loadPlaylist(); }
+      }, 500);
     })();
   </script>
 

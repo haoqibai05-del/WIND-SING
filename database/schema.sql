@@ -79,6 +79,11 @@ CREATE TABLE `music_playlist` (
   KEY `idx_sort_order` (`sort_order`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='私人歌单表';
 
+-- 为 admin 预置两首带有地方戏曲文化特色的测试歌曲（cover 和 source 使用公共测试资源）
+INSERT INTO `music_playlist` (`user_id`, `song_title`, `artist`, `cover_url`, `source_url`, `sort_order`) VALUES
+(1, '帝女花 · 香夭选段', '任剑辉 / 白雪仙', 'https://picsum.photos/seed/opera1/400/400', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', 1),
+(1, '荔枝颂', '红线女', 'https://picsum.photos/seed/opera2/400/400', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', 2);
+
 -- ----------------------------
 -- 5. 阅读进度表
 -- ----------------------------
