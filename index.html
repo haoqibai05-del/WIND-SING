@@ -636,7 +636,7 @@
   <!-- ========== 追剧 - 视频播放器 + 进度云同步 ========== -->
   <script>
     (function () {
-      const API_BASE = 'http://localhost:8080';
+      const API_BASE = 'http://47.82.91.247:8080';
       const container = document.getElementById('dplayer-container');
       const episodeListEl = document.getElementById('episode-list');
 
@@ -847,7 +847,7 @@
   <!-- ========== 阅读 - 字号持久化 + 云端书签 ========== -->
   <script>
     (function () {
-      const API_BASE = 'http://localhost:8080';
+      const API_BASE = 'http://47.82.91.247:8080';
       const FONT_KEY = 'windsing_font_size';
 
       const readerContent  = document.getElementById('reader-content');
@@ -1109,7 +1109,7 @@
   <!-- ========== 听歌 - 原生 Audio + 歌单管理 ========== -->
   <script>
     (function () {
-      const API_BASE = 'http://localhost:8080';
+      const API_BASE = 'http://47.82.91.247:8080';
       const audio = new Audio(); // HTML5 Audio 单例
       let playlist = [];          // 后端歌单数据
       let currentIndex = -1;     // 当前播放的歌曲在 playlist 中的索引
@@ -1352,7 +1352,7 @@
   <!-- ========== 动态 - 发布与渲染逻辑 ========== -->
   <script>
     (function () {
-      const API_BASE = 'http://localhost:8080';
+      const API_BASE = 'http://47.82.91.247:8080';
       const textarea = document.getElementById('publish-textarea');
       const publishBtn = document.getElementById('publish-btn');
       const timelineList = document.getElementById('timeline-list');
@@ -1488,7 +1488,7 @@
   <!-- ========== 登录鉴权逻辑 ========== -->
   <script>
     (function () {
-      const API_BASE = 'http://localhost:8080';
+      const API_BASE = 'http://47.82.91.247:8080';
       const TOKEN_KEY = 'windsing_token';
 
       const btnLogin       = document.getElementById('btn-login');
